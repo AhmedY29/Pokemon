@@ -4,6 +4,10 @@
 	import * as Resizable from '$lib/components/ui/resizable/index.js';
 </script>
 
+<svelte:head>
+	<title>Pokemon Explorer</title>
+</svelte:head>
+
 <div class="m-5 flex items-center justify-center">
 	<Resizable.PaneGroup direction="horizontal" class=" min-h-[95vh] w-[90vw] rounded-lg border">
 		<Resizable.Pane class={'hidden lg:block'}>

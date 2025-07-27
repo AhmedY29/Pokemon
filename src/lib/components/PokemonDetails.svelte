@@ -88,6 +88,11 @@
 	};
 </script>
 
+<!-- <svelte:head>
+	<title>Pokemon {`${capitalizeNames(pokemon.forms[0].name)}`}</title>
+	<meta name="description" content="This is where the description goes for SEO" />
+</svelte:head> -->
+
 <div class="">
 	{#if loading}
 		<div class="flex flex-col items-center gap-5">

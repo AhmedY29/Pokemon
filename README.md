@@ -1,38 +1,24 @@
-# sv
+# Pokémon Explorer
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A dynamic web application that displays Pokémon characters and their details using the [PokeAPI](https://pokeapi.co/). Browse through your favorite Pokémon, view their stats, abilities in an interactive interface.
 
-## Creating a project
+![Project Screenshot](/static/Screenshot.png)
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Key Feature
 
-```sh
-# create a new project in the current directory
-npx sv create
+- List View
+- Search
+- Filter by Type
+- Detail View
+- Loading & Error States
 
-# create a new project in my-app
-npx sv create my-app
-```
+## Technologies Used
 
-## Developing
+- SvelteKit v5
+- Shadcn
+- TailwindCSS
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Prerequisites
 
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- Node.js v22+
+- npm
