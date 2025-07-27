@@ -7,6 +7,7 @@
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { cn } from '$lib/utils.js';
+	import { Skeleton } from '$lib/components/ui/skeleton';
 
 	const Base_Url = 'https://pokeapi.co/api/v2/';
 
@@ -45,14 +46,15 @@
 	let types = $state<Types[]>([]);
 	let next: string = '';
 	let loading = $state(false);
-	let query = '';
+	let moreDateLoading = $state(false);
+	let query = $state('');
 
-	const selectedValues = $derived(types.filter((f: Types) => value.includes(f.name)));
+	let selectedValues = $derived(types.filter((f: Types) => value.includes(f.name)));
 
 	const fetchPokemonData = async () => {
 		try {
 			loading = true;
-			let res = await fetch(`${Base_Url}pokemon?limit=50&offset=0`);
+			let res = await fetch(`${Base_Url}pokemon?limit=10&offset=0`);
 			let data = await res.json();
 			console.log(data, 'pokemon data from list api');
 			next = data.next;
@@ -69,7 +71,9 @@
 		} catch (error: any) {
 			console.log(error.message, 'error');
 		} finally {
-			loading = false;
+			setTimeout(() => {
+				loading = false;
+			}, 5000);
 		}
 	};
 
@@ -83,7 +87,9 @@
 		} catch (error: any) {
 			console.log(error.message, 'type error');
 		} finally {
-			loading = false;
+			setTimeout(() => {
+				loading = false;
+			}, 5000);
 		}
 	};
 
@@ -118,6 +124,29 @@
 			filteredPokemonData = pokemonData.filter((pokemon) =>
 				selectedValues.some((e: Types) => pokemon.types[0].type.name == e.name)
 			);
+		}
+	};
+
+	const handleLoadMore = async () => {
+		moreDateLoading = true;
+		try {
+			const res = await fetch(next);
+			const data = await res.json();
+			next = data.next;
+			let details = await Promise.all(
+				data.results.map(async (pokemon: Pokemon) => {
+					let res = await fetch(pokemon.url);
+					return await res.json();
+				})
+			);
+			pokemonData = [...pokemonData, ...details];
+			filteredPokemonData = pokemonData;
+			query = '';
+			selectedValues = [];
+		} catch (error: any) {
+			console.log(`Error in Load More: ${error.message}`);
+		} finally {
+			moreDateLoading = false;
 		}
 	};
 
@@ -189,7 +218,14 @@
 	</div>
 	<div class="cards flex flex-col gap-5 overflow-auto">
 		{#if loading}
-			<div><h1>Loading</h1></div>
+			<div class="flex flex-col gap-6">
+				<Skeleton class="h-20 rounded " />
+				<Skeleton class="h-20 rounded " />
+				<Skeleton class="h-20 rounded " />
+				<Skeleton class="h-20 rounded " />
+				<Skeleton class="h-20 rounded " />
+				<Skeleton class="h-20 rounded " />
+			</div>
 		{:else}
 			{#each filteredPokemonData as pokemon}
 				<div
@@ -219,6 +255,14 @@
 					</div>
 				</div>
 			{/each}
+			{#if filteredPokemonData.length == 0 && !loading}
+				<h1>No Found Pokemon</h1>
+			{/if}
+			<div class="flex justify-center">
+				<Button class="w-32 cursor-pointer" onclick={handleLoadMore} disabled={moreDateLoading}
+					>{moreDateLoading ? 'loading...' : 'More'}</Button
+				>
+			</div>
 		{/if}
 	</div>
 </div>
