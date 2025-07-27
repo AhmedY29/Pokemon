@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import List from '$lib/components/List.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import * as Resizable from '$lib/components/ui/resizable/index.js';
+	let { id } = $page.params;
 </script>
 
 <div class="m-5 flex items-center justify-center">
@@ -15,11 +17,7 @@
 		</Resizable.Pane>
 		<Resizable.Handle />
 		<Resizable.Pane class={'hidden sm:block'}>
-			<div class="flex h-full flex-col items-center justify-center">
-				<img src="/Pokemon.png" alt="pokemon-select" width="200" class="grayscale-50" />
-				<h1 class="text-lg font-bold">Select a Pokemon</h1>
-				<h1 class="text-md">Choose a pokemon from the list to see details</h1>
-			</div>
+			Pokemon {id}
 		</Resizable.Pane>
 	</Resizable.PaneGroup>
 </div>

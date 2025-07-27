@@ -10,6 +10,11 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import Card from '$lib/components/Card.svelte';
 
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
+	import { buttonVariants } from '$lib/components/ui/button/index.js';
+	import { Menu } from 'lucide-svelte';
+	import Sidebar from './Sidebar.svelte';
+
 	const Base_Url = 'https://pokeapi.co/api/v2/';
 
 	type Pokemon = {
@@ -143,6 +148,7 @@
 			pokemonData = [...pokemonData, ...details];
 			filteredPokemonData = pokemonData;
 			query = '';
+			value = [];
 			selectedValues = [];
 		} catch (error: any) {
 			console.log(`Error in Load More: ${error.message}`);
@@ -162,60 +168,70 @@
 
 <div class="m-10 flex flex-col gap-6">
 	<div class="search flex w-full justify-between gap-2">
-		<Input
-			type="text"
-			placeholder="Search For Pokemon"
-			value={query}
-			onchange={handelSearch}
-			class=""
-		/>
+		<div class="lg:hidden">
+			<Sheet.Root>
+				<Sheet.Trigger class={buttonVariants({ variant: 'outline' })}><Menu /></Sheet.Trigger>
+				<Sheet.Content side="left">
+					<Sidebar />
+				</Sheet.Content>
+			</Sheet.Root>
+		</div>
+		<div class="flex w-full flex-col md:flex-row">
+			<Input
+				type="text"
+				placeholder="Search For Pokemon"
+				value={query}
+				onchange={handelSearch}
+				class=""
+			/>
 
-		<Popover.Root bind:open>
-			<Popover.Trigger bind:ref={triggerRef}>
-				<Button
-					variant="outline"
-					class="w-full justify-between md:w-fit"
-					role="combobox"
-					aria-expanded={open}
-				>
-					{#if selectedValues.length > 0}
-						{selectedValues.length > 3
-							? `${selectedValues.map((f: Types) => capitalizeNames(f.name)).slice(0, 3)}...`
-							: selectedValues.map((f: Types) => capitalizeNames(f.name))}
-					{:else}
-						Select Type...
-					{/if}
-					<ChevronsUpDownIcon class="opacity-50" />
-				</Button>
-			</Popover.Trigger>
+			<Popover.Root bind:open>
+				<Popover.Trigger bind:ref={triggerRef}>
+					<Button
+						variant="outline"
+						class="w-full justify-between md:w-fit"
+						role="combobox"
+						aria-expanded={open}
+					>
+						{#if selectedValues.length > 0}
+							{selectedValues.length > 3
+								? `${selectedValues.map((f: Types) => capitalizeNames(f.name)).slice(0, 3)}...`
+								: selectedValues.map((f: Types) => capitalizeNames(f.name))}
+						{:else}
+							Select Type...
+						{/if}
+						<ChevronsUpDownIcon class="opacity-50" />
+					</Button>
+				</Popover.Trigger>
 
-			<Popover.Content class="w-60 p-0">
-				<Command.Root>
-					<Command.Input placeholder="Search types..." />
-					<Command.List>
-						<Command.Empty>No type found.</Command.Empty>
-						<Command.Group value="types">
-							{#each types as type (type.name)}
-								<Command.Item
-									value={type.name}
-									onSelect={() => {
-										if (value.includes(type.name)) {
-											value = value.filter((v) => v !== type.name);
-										} else {
-											value = [...value, type.name];
-										}
-										handelSelectType();
-									}}
-								>
-									<CheckIcon class={cn(!value.includes(type.name) && 'text-transparent')} />
-									{capitalizeNames(type.name)}
-								</Command.Item>
-							{/each}
-						</Command.Group>
-					</Command.List>
-				</Command.Root>
-			</Popover.Content>
-		</Popover.Root>
+				<Popover.Content class="w-60 p-0">
+					<Command.Root>
+						<Command.Input placeholder="Search types..." />
+						<Command.List>
+							<Command.Empty>No type found.</Command.Empty>
+							<Command.Group value="types">
+								{#each types as type (type.name)}
+									<Command.Item
+										value={type.name}
+										onSelect={() => {
+											if (value.includes(type.name)) {
+												value = value.filter((v) => v !== type.name);
+											} else {
+												value = [...value, type.name];
+											}
+											handelSelectType();
+										}}
+									>
+										<CheckIcon class={cn(!value.includes(type.name) && 'text-transparent')} />
+										{capitalizeNames(type.name)}
+									</Command.Item>
+								{/each}
+							</Command.Group>
+						</Command.List>
+					</Command.Root>
+				</Popover.Content>
+			</Popover.Root>
+		</div>
 	</div>
 	<div style="scrollbar-width: none;" class="cards flex max-h-[75vh] flex-col gap-5 overflow-auto">
 		{#if loading}

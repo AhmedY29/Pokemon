@@ -1,8 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 @import "tailwindcss";
 
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+
+.great-vibes{
+  font-family: "Great Vibes", cursive;
+}
 
 :root {
   --radius: 0.625rem;
