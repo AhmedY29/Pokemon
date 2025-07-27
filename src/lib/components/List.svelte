@@ -54,6 +54,7 @@
 	let loading = $state(false);
 	let moreDataLoading = $state(false);
 	let query = $state('');
+	let fetchErr = $state(null);
 
 	let selectedValues = $derived(types.filter((f: Types) => value.includes(f.name)));
 
@@ -76,10 +77,11 @@
 			console.log(pokemonData, 'pokemon data');
 		} catch (error: any) {
 			console.log(error.message, 'error');
+			fetchErr = error.message;
 		} finally {
 			setTimeout(() => {
 				loading = false;
-			}, 5000);
+			}, 200);
 		}
 	};
 
@@ -92,10 +94,11 @@
 			console.log(types, 'type');
 		} catch (error: any) {
 			console.log(error.message, 'type error');
+			fetchErr = error.message;
 		} finally {
 			setTimeout(() => {
 				loading = false;
-			}, 5000);
+			}, 200);
 		}
 	};
 
@@ -176,7 +179,7 @@
 				</Sheet.Content>
 			</Sheet.Root>
 		</div>
-		<div class="flex w-full flex-col md:flex-row">
+		<div class="flex w-full flex-col gap-2 md:flex-row">
 			<Input
 				type="text"
 				placeholder="Search For Pokemon"
@@ -236,13 +239,16 @@
 	<div style="scrollbar-width: none;" class="cards flex max-h-[75vh] flex-col gap-5 overflow-auto">
 		{#if loading}
 			<div class="flex flex-col gap-6">
-				<Skeleton class="h-20 rounded " />
-				<Skeleton class="h-20 rounded " />
-				<Skeleton class="h-20 rounded " />
-				<Skeleton class="h-20 rounded " />
-				<Skeleton class="h-20 rounded " />
-				<Skeleton class="h-20 rounded " />
+				<Skeleton class="h-25 rounded " />
+				<Skeleton class="h-25 rounded " />
+				<Skeleton class="h-25 rounded " />
+				<Skeleton class="h-25 rounded " />
+				<Skeleton class="h-25 rounded " />
+				<Skeleton class="h-25 rounded " />
 			</div>
+		{:else if fetchErr}
+			<h1>Error In Get Pokemon Details</h1>
+			<Button onclick={fetchPokemonData}>Retry</Button>
 		{:else}
 			{#each filteredPokemonData as pokemon}
 				<Card
