@@ -5,7 +5,7 @@
 </script>
 
 <div
-	class="flex items-end justify-between border bg-zinc-100 p-3 transition-all duration-200 hover:bg-zinc-200"
+	class="flex items-end justify-between rounded border bg-zinc-100 p-3 transition-all duration-200 hover:bg-zinc-200"
 >
 	<div class="title">
 		<h1>
