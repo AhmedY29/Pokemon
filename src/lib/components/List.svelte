@@ -122,8 +122,10 @@
 
 		filteredPokemonData =
 			selectedValues.length == 0
-				? pokemonData.filter((pokemon) => pokemon.forms[0].name.includes(search))
-				: filteredPokemonData.filter((pokemon) => pokemon.forms[0].name.includes(search));
+				? pokemonData.filter((pokemon) => pokemon.forms[0].name.includes(search.toLowerCase()))
+				: filteredPokemonData.filter((pokemon) =>
+						pokemon.forms[0].name.includes(search.toLowerCase())
+					);
 	};
 
 	const handelSelectType = () => {
