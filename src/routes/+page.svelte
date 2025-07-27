@@ -8,6 +8,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { cn } from '$lib/utils.js';
 	import { Skeleton } from '$lib/components/ui/skeleton';
+	import Card from '$lib/components/Card.svelte';
 
 	const Base_Url = 'https://pokeapi.co/api/v2/';
 
@@ -46,7 +47,7 @@
 	let types = $state<Types[]>([]);
 	let next: string = '';
 	let loading = $state(false);
-	let moreDateLoading = $state(false);
+	let moreDataLoading = $state(false);
 	let query = $state('');
 
 	let selectedValues = $derived(types.filter((f: Types) => value.includes(f.name)));
@@ -128,7 +129,7 @@
 	};
 
 	const handleLoadMore = async () => {
-		moreDateLoading = true;
+		moreDataLoading = true;
 		try {
 			const res = await fetch(next);
 			const data = await res.json();
@@ -146,7 +147,7 @@
 		} catch (error: any) {
 			console.log(`Error in Load More: ${error.message}`);
 		} finally {
-			moreDateLoading = false;
+			moreDataLoading = false;
 		}
 	};
 
@@ -228,39 +229,18 @@
 			</div>
 		{:else}
 			{#each filteredPokemonData as pokemon}
-				<div
-					class="flex items-end justify-between border bg-zinc-100 p-3 transition-all duration-200 hover:bg-zinc-200"
-				>
-					<div class="title">
-						<h1>
-							{capitalizeNames(pokemon.forms[0].name)}
-						</h1>
-						<div class="flex gap-2">
-							<h1>
-								#{extractId(pokemon.forms[0].url)}
-							</h1>
-							<h1
-								class={`${pokemon.types[0].type.name == 'grass' ? 'bg-green-200/20' : pokemon.types[0].type.name == 'fire' ? 'bg-red-200/20' : pokemon.types[0].type.name == 'water' ? 'bg-blue-200/20' : 'bg-yellow-200/20'} rounded-2xl px-2`}
-							>
-								{capitalizeNames(pokemon.types[0].type.name)}
-							</h1>
-						</div>
-					</div>
-					<div class="type">
-						<h1
-							class={`${pokemon.types[0].type.name == 'grass' ? 'bg-green-200' : pokemon.types[0].type.name == 'fire' ? 'bg-red-200' : pokemon.types[0].type.name == 'water' ? 'bg-blue-200' : 'bg-yellow-200'} rounded-2xl px-2`}
-						>
-							{capitalizeNames(pokemon.types[0].type.name)}
-						</h1>
-					</div>
-				</div>
+				<Card
+					pokemonName={capitalizeNames(pokemon.forms[0].name)}
+					pokemonId={extractId(pokemon.forms[0].url)}
+					pokemonType={capitalizeNames(pokemon.types[0].type.name)}
+				/>
 			{/each}
 			{#if filteredPokemonData.length == 0 && !loading}
 				<h1>No Found Pokemon</h1>
 			{/if}
 			<div class="flex justify-center">
-				<Button class="w-32 cursor-pointer" onclick={handleLoadMore} disabled={moreDateLoading}
-					>{moreDateLoading ? 'loading...' : 'More'}</Button
+				<Button class="w-32 cursor-pointer" onclick={handleLoadMore} disabled={moreDataLoading}
+					>{moreDataLoading ? 'loading...' : 'More'}</Button
 				>
 			</div>
 		{/if}
