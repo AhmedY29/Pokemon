@@ -42,12 +42,11 @@
 		};
 	};
 
-	let pokemon: PokemonDetails;
+	let pokemon = $state<PokemonDetails>({} as PokemonDetails);
 
-	let { id } = $page.params;
+	let { id } = $state($page.params);
 	let fetchErr = $state(null);
 	let loading = $state(false);
-	console.log(id, 'sssssssssssssssssssssssssssssssssss');
 
 	const fetchData = async () => {
 		loading = true;
@@ -56,12 +55,9 @@
 			const data = await res.json();
 
 			pokemon = data;
-			console.log(pokemon, 'ss');
 		} catch (error: any) {
 			console.log(`Error in Get Pokemon Details: ${error.message}`);
-			console.log(fetchErr, '1');
 			fetchErr = error.message;
-			console.log(fetchErr, '2');
 		} finally {
 			setTimeout(() => {
 				loading = false;
@@ -88,14 +84,17 @@
 	};
 </script>
 
-<!-- <svelte:head>
-	<title>Pokemon {`${capitalizeNames(pokemon.forms[0].name)}`}</title>
-	<meta name="description" content="This is where the description goes for SEO" />
-</svelte:head> -->
+<svelte:head>
+	<title
+		>Pokemon {pokemon?.forms?.[0]?.name
+			? capitalizeNames(pokemon?.forms[0]?.name)
+			: 'Loading'}</title
+	>
+</svelte:head>
 
 <div class="">
 	{#if loading}
-		<div class="flex flex-col items-center gap-5">
+		<div class="m-5 flex flex-col items-center gap-5">
 			<Skeleton class="mt-5 h-60 w-60 rounded" />
 			<div class="mt-4.5 w-full">
 				<Skeleton class="mt-5 h-5 w-25 rounded" />
@@ -148,12 +147,12 @@
 						<Skeleton class="h-60 w-60 rounded" />
 					{:else}
 						<div class="flex w-full justify-center">
-							<img class="w-55" src={pokemon?.sprites.front_default} alt="Pokemon_Image" />
+							<img class="w-40 md:w-55" src={pokemon?.sprites.front_default} alt="Pokemon_Image" />
 						</div>
 					{/if}
 
 					<h1 class="text-xl font-medium">Base Stat</h1>
-					<div class="stats">
+					<div class="stats flex flex-col gap-2">
 						{#each pokemon?.stats as stat (stat.stat.name)}
 							<div class="stat flex w-full items-center justify-between gap-5">
 								<h1 class="w-25">{capitalizeNames(stat.stat.name)}</h1>
@@ -169,7 +168,7 @@
 						<h1 class="text-xl font-medium">Abilities</h1>
 						<ul>
 							{#each pokemon?.abilities as ability (ability.ability.name)}
-								<li class="ml-5">
+								<li>
 									{capitalizeNames(ability?.ability.name)}
 								</li>
 							{/each}
