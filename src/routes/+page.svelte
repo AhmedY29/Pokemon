@@ -1,5 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import CheckIcon from '@lucide/svelte/icons/check';
+	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { cn } from '$lib/utils.js';
 
 	const Base_Url = 'https://pokeapi.co/api/v2/';
 
@@ -29,14 +36,23 @@
 		];
 	};
 
+	let open = $state(false);
+	let value = $state<string[]>([]);
+	let triggerRef = $state<HTMLButtonElement>(null!);
+
 	let pokemonData: PokemonDetails[] = [];
-	let types: Types[] = [];
+	let filteredPokemonData = $state<PokemonDetails[]>([]);
+	let types = $state<Types[]>([]);
 	let next: string = '';
-	let loading = false;
+	let loading = $state(false);
+	let query = '';
+
+	const selectedValues = $derived(types.filter((f: Types) => value.includes(f.name)));
+
 	const fetchPokemonData = async () => {
 		try {
 			loading = true;
-			let res = await fetch(`${Base_Url}pokemon?limit=10&offset=0`);
+			let res = await fetch(`${Base_Url}pokemon?limit=50&offset=0`);
 			let data = await res.json();
 			console.log(data, 'pokemon data from list api');
 			next = data.next;
@@ -48,6 +64,7 @@
 				})
 			);
 			pokemonData = details;
+			filteredPokemonData = pokemonData;
 			console.log(pokemonData, 'pokemon data');
 		} catch (error: any) {
 			console.log(error.message, 'error');
@@ -77,6 +94,33 @@
 		return url.split('/')[6];
 	};
 
+	const handelSearch = (e: Event) => {
+		let target = e.target as HTMLSelectElement;
+		let search = target.value;
+
+		filteredPokemonData =
+			selectedValues.length > 0
+				? pokemonData.filter((pokemon) =>
+						selectedValues.some((e: Types) => pokemon.types[0].type.name == e.name)
+					)
+				: pokemonData;
+
+		filteredPokemonData =
+			selectedValues.length == 0
+				? pokemonData.filter((pokemon) => pokemon.forms[0].name.includes(search))
+				: filteredPokemonData.filter((pokemon) => pokemon.forms[0].name.includes(search));
+	};
+
+	const handelSelectType = () => {
+		if (selectedValues.length == 0) {
+			filteredPokemonData = pokemonData;
+		} else {
+			filteredPokemonData = pokemonData.filter((pokemon) =>
+				selectedValues.some((e: Types) => pokemon.types[0].type.name == e.name)
+			);
+		}
+	};
+
 	onMount(() => {
 		fetchPokemonData();
 		fetchTypeData();
@@ -86,18 +130,68 @@
 <!-- <h1>Welcome to SvelteKit</h1>
 <p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p> -->
 
-<div>
-	<select name="" id="">
-		<option value="">Select Type</option>
-		{#each types as type}
-			<option value={type.url}>{capitalizeNames(type.name)}</option>
-		{/each}
-	</select>
+<div class="m-10 flex flex-col gap-6">
+	<div class="search flex w-full justify-between gap-2">
+		<Input
+			type="text"
+			placeholder="Search For Pokemon"
+			value={query}
+			onchange={handelSearch}
+			class=""
+		/>
+
+		<Popover.Root bind:open>
+			<Popover.Trigger bind:ref={triggerRef}>
+				<Button
+					variant="outline"
+					class="w-full justify-between md:w-fit"
+					role="combobox"
+					aria-expanded={open}
+				>
+					{#if selectedValues.length > 0}
+						{selectedValues.length > 3
+							? `${selectedValues.map((f: Types) => capitalizeNames(f.name)).slice(0, 3)}...`
+							: selectedValues.map((f: Types) => capitalizeNames(f.name))}
+					{:else}
+						Select Type...
+					{/if}
+					<ChevronsUpDownIcon class="opacity-50" />
+				</Button>
+			</Popover.Trigger>
+
+			<Popover.Content class="w-60 p-0">
+				<Command.Root>
+					<Command.Input placeholder="Search types..." />
+					<Command.List>
+						<Command.Empty>No type found.</Command.Empty>
+						<Command.Group value="types">
+							{#each types as type (type.name)}
+								<Command.Item
+									value={type.name}
+									onSelect={() => {
+										if (value.includes(type.name)) {
+											value = value.filter((v) => v !== type.name);
+										} else {
+											value = [...value, type.name];
+										}
+										handelSelectType();
+									}}
+								>
+									<CheckIcon class={cn(!value.includes(type.name) && 'text-transparent')} />
+									{capitalizeNames(type.name)}
+								</Command.Item>
+							{/each}
+						</Command.Group>
+					</Command.List>
+				</Command.Root>
+			</Popover.Content>
+		</Popover.Root>
+	</div>
 	<div class="cards flex flex-col gap-5 overflow-auto">
 		{#if loading}
 			<div><h1>Loading</h1></div>
 		{:else}
-			{#each pokemonData as pokemon}
+			{#each filteredPokemonData as pokemon}
 				<div
 					class="flex items-end justify-between border bg-zinc-100 p-3 transition-all duration-200 hover:bg-zinc-200"
 				>
