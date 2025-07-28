@@ -109,7 +109,7 @@
 		return url.split('/')[6];
 	};
 
-	const handelSearch = (e: Event) => {
+	const handleSearch = (e: Event) => {
 		let target = e.target as HTMLSelectElement;
 		let search = target.value;
 
@@ -128,7 +128,7 @@
 					);
 	};
 
-	const handelSelectType = () => {
+	const handleSelectType = () => {
 		if (selectedValues.length == 0) {
 			filteredPokemonData = pokemonData;
 		} else {
@@ -186,7 +186,7 @@
 				type="text"
 				placeholder="Search For Pokemon"
 				value={query}
-				onchange={handelSearch}
+				onchange={handleSearch}
 				class=""
 			/>
 
@@ -224,7 +224,7 @@
 											} else {
 												value = [...value, type.name];
 											}
-											handelSelectType();
+											handleSelectType();
 										}}
 									>
 										<CheckIcon class={cn(!value.includes(type.name) && 'text-transparent')} />
