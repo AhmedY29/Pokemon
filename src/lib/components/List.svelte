@@ -14,93 +14,27 @@
 	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import { Menu } from 'lucide-svelte';
 	import Sidebar from './Sidebar.svelte';
+	import { goto } from '$app/navigation';
+	import { get } from 'svelte/store';
+	import { page } from '$app/stores';
+	import type { PokemonDetails, Types } from '$lib/types';
 
-	const Base_Url = 'https://pokeapi.co/api/v2/';
-
-	type Pokemon = {
-		name: string;
-		url: string;
-	};
-
-	type Types = {
-		name: string;
-		url: string;
-	};
-
-	type PokemonDetails = {
-		forms: [
-			{
-				name: string;
-				url: string;
-			}
-		];
-		types: [
-			{
-				type: {
-					name: string;
-				};
-			}
-		];
-	};
+	let { pokemonList, types, handleRetry, handleLoadMore } = $props();
 
 	let open = $state(false);
 	let value = $state<string[]>([]);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
-	let pokemonData: PokemonDetails[] = [];
 	let filteredPokemonData = $state<PokemonDetails[]>([]);
-	let types = $state<Types[]>([]);
-	let next: string = '';
 	let loading = $state(false);
 	let moreDataLoading = $state(false);
 	let query = $state('');
-	let fetchErr = $state(null);
 
-	let selectedValues = $derived(types.filter((f: Types) => value.includes(f.name)));
+	let selectedValues = $derived(types?.filter((f: Types) => value.includes(f.name)));
 
-	const fetchPokemonData = async () => {
-		try {
-			loading = true;
-			let res = await fetch(`${Base_Url}pokemon?limit=10&offset=0`);
-			let data = await res.json();
-			console.log(data, 'pokemon data from list api');
-			next = data.next;
-			// For Extract Pokemon Details -> Type
-			let details = await Promise.all(
-				data.results.map(async (pokemon: Pokemon) => {
-					let res = await fetch(pokemon.url);
-					return await res.json();
-				})
-			);
-			pokemonData = details;
-			filteredPokemonData = pokemonData;
-			console.log(pokemonData, 'pokemon data');
-		} catch (error: any) {
-			console.log(error.message, 'error');
-			fetchErr = error.message;
-		} finally {
-			setTimeout(() => {
-				loading = false;
-			}, 200);
-		}
-	};
-
-	const fetchTypeData = async () => {
-		try {
-			loading = true;
-			let res = await fetch(`${Base_Url}type`);
-			let data = await res.json();
-			types = data.results;
-			console.log(types, 'type');
-		} catch (error: any) {
-			console.log(error.message, 'type error');
-			fetchErr = error.message;
-		} finally {
-			setTimeout(() => {
-				loading = false;
-			}, 200);
-		}
-	};
+	$effect(() => {
+		filteredPokemonData = pokemonList;
+	});
 
 	const capitalizeNames = (name: string) => {
 		return `${name[0].toUpperCase()}${name.slice(1)}`;
@@ -110,61 +44,76 @@
 	};
 
 	const handleSearch = (e: Event) => {
-		let target = e.target as HTMLSelectElement;
-		let search = target.value;
+		const target = e.target as HTMLInputElement;
+		const search = target.value.trim();
 
-		filteredPokemonData =
-			selectedValues.length > 0
-				? pokemonData.filter((pokemon) =>
-						selectedValues.some((e: Types) => pokemon.types[0].type.name == e.name)
-					)
-				: pokemonData;
+		const currentParams = new URLSearchParams(get(page).url.search);
 
-		filteredPokemonData =
-			selectedValues.length == 0
-				? pokemonData.filter((pokemon) => pokemon.forms[0].name.includes(search.toLowerCase()))
-				: filteredPokemonData.filter((pokemon) =>
-						pokemon.forms[0].name.includes(search.toLowerCase())
-					);
+		if (search) {
+			currentParams.set('q', search);
+		} else {
+			currentParams.delete('q');
+		}
+
+		goto(`?${currentParams.toString()}`, { replaceState: true });
+
+		filterPokemonList(search, selectedValues);
 	};
 
 	const handleSelectType = () => {
-		if (selectedValues.length == 0) {
-			filteredPokemonData = pokemonData;
+		const currentParams = new URLSearchParams(get(page).url.search);
+
+		if (selectedValues?.length > 0) {
+			const typeString = selectedValues.map((e: Types) => e.name).join(',');
+			currentParams.set('type', typeString);
 		} else {
-			filteredPokemonData = pokemonData.filter((pokemon) =>
+			currentParams.delete('type');
+		}
+
+		goto(`?${currentParams.toString()}`, { replaceState: true });
+
+		const search = currentParams.get('q') ?? '';
+		filterPokemonList(search, selectedValues);
+	};
+
+	const filterPokemonList = (search: string, selectedValues: Types[]) => {
+		filteredPokemonData = pokemonList;
+
+		if (selectedValues?.length > 0) {
+			filteredPokemonData = filteredPokemonData.filter((pokemon: any) =>
 				selectedValues.some((e: Types) => pokemon.types[0].type.name == e.name)
 			);
 		}
-	};
 
-	const handleLoadMore = async () => {
-		moreDataLoading = true;
-		try {
-			const res = await fetch(next);
-			const data = await res.json();
-			next = data.next;
-			let details = await Promise.all(
-				data.results.map(async (pokemon: Pokemon) => {
-					let res = await fetch(pokemon.url);
-					return await res.json();
-				})
+		if (search) {
+			filteredPokemonData = filteredPokemonData.filter((pokemon: any) =>
+				pokemon.forms[0].name.includes(search.toLowerCase())
 			);
-			pokemonData = [...pokemonData, ...details];
-			filteredPokemonData = pokemonData;
-			query = '';
-			value = [];
-			selectedValues = [];
-		} catch (error: any) {
-			console.log(`Error in Load More: ${error.message}`);
-		} finally {
-			moreDataLoading = false;
 		}
 	};
 
+	const handleClickLoadMore = async () => {
+		query = '';
+		value = [];
+		selectedValues = [];
+
+		const currentParams = new URLSearchParams(get(page).url.search);
+		currentParams.delete('q');
+		currentParams.delete('type');
+
+		const newUrl = currentParams.toString();
+		goto(newUrl ? `?${newUrl}` : '?', { replaceState: true });
+	};
+
 	onMount(() => {
-		fetchPokemonData();
-		fetchTypeData();
+		const params = new URLSearchParams(window.location.search);
+		const search = params.get('q') ?? '';
+		const types = params.get('type')?.split(',') ?? [];
+
+		query = search;
+		selectedValues = types.map((name) => ({ name }));
+
+		filterPokemonList(search, selectedValues);
 	});
 </script>
 
@@ -185,7 +134,7 @@
 			<Input
 				type="text"
 				placeholder="Search For Pokemon"
-				value={query}
+				bind:value={query}
 				onchange={handleSearch}
 				class=""
 			/>
@@ -198,10 +147,10 @@
 						role="combobox"
 						aria-expanded={open}
 					>
-						{#if selectedValues.length > 0}
-							{selectedValues.length > 3
-								? `${selectedValues.map((f: Types) => capitalizeNames(f.name)).slice(0, 3)}...`
-								: selectedValues.map((f: Types) => capitalizeNames(f.name))}
+						{#if selectedValues?.length > 0}
+							{selectedValues?.length > 3
+								? `${selectedValues?.map((f: Types) => capitalizeNames(f.name)).slice(0, 3)}...`
+								: selectedValues?.map((f: Types) => capitalizeNames(f.name))}
 						{:else}
 							Select Type...
 						{/if}
@@ -238,7 +187,10 @@
 			</Popover.Root>
 		</div>
 	</div>
-	<div style="scrollbar-width: none;" class="cards flex max-h-[75vh] flex-col gap-5 overflow-auto">
+	<div
+		style="scrollbar-width: none;"
+		class="cards flex h-[90%] max-h-[80vh] flex-col gap-5 overflow-auto"
+	>
 		{#if loading}
 			<div class="flex flex-col gap-6">
 				<Skeleton class="h-25 rounded " />
@@ -248,23 +200,27 @@
 				<Skeleton class="h-25 rounded " />
 				<Skeleton class="h-25 rounded " />
 			</div>
-		{:else if fetchErr}
+		{:else if pokemonList == undefined}
 			<h1>Error In Get Pokemon Details</h1>
-			<Button onclick={fetchPokemonData}>Retry</Button>
+			<Button onclick={handleRetry}>Retry</Button>
 		{:else}
 			{#each filteredPokemonData as pokemon}
-				<Card
-					pokemonName={capitalizeNames(pokemon.forms[0].name)}
-					pokemonId={extractId(pokemon.forms[0].url)}
-					pokemonType={capitalizeNames(pokemon.types[0].type.name)}
-				/>
+				<a href={`/pokemon/${extractId(pokemon.forms[0].url)}`}>
+					<Card
+						pokemonName={capitalizeNames(pokemon.forms[0].name)}
+						pokemonId={extractId(pokemon.forms[0].url)}
+						pokemonType={capitalizeNames(pokemon.types[0].type.name)}
+					/>
+				</a>
 			{/each}
-			{#if filteredPokemonData.length == 0 && !loading}
-				<h1>No Found Pokemon</h1>
+			{#if filteredPokemonData?.length == 0 && !loading}
+				<h1>Not Found Pokemon "{query}""</h1>
 			{/if}
 			<div class="flex justify-center">
-				<Button class="w-32 cursor-pointer" onclick={handleLoadMore} disabled={moreDataLoading}
-					>{moreDataLoading ? 'loading...' : 'More'}</Button
+				<Button
+					class="w-32 cursor-pointer"
+					onclick={() => (handleLoadMore(), handleClickLoadMore())}
+					disabled={moreDataLoading}>{moreDataLoading ? 'loading...' : 'More'}</Button
 				>
 			</div>
 		{/if}

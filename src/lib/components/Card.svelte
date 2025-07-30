@@ -5,15 +5,14 @@
 	export let pokemonName;
 	export let pokemonType;
 
-	const handleCardDetails = () => {
-		setTimeout(() => {
-			goto(`/pokemon/${pokemonId}`);
-		}, 100);
-	};
+	// const handleCardDetails = () => {
+	// 	setTimeout(() => {
+	// 		goto(`/pokemon/${pokemonId}`);
+	// 	}, 100);
+	// };
 </script>
 
-<button
-	on:click={handleCardDetails}
+<div
 	class="flex cursor-pointer items-end justify-between rounded border bg-zinc-100 p-5 transition-all duration-200 hover:bg-zinc-200 hover:shadow dark:bg-black hover:dark:bg-gray-900"
 >
 	<div class="title flex flex-col items-start gap-1">
@@ -38,4 +37,4 @@
 			{pokemonType}
 		</h1>
 	</div>
-</button>
+</div>
