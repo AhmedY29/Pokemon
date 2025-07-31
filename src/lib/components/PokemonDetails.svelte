@@ -25,8 +25,8 @@
 
 <svelte:head>
 	<title
-		>Pokemon {pokemonData?.forms?.[0]?.name
-			? capitalizeNames(pokemonData?.forms[0]?.name)
+		>Pokemon {pokemonData?.pokemonName
+			? capitalizeNames(pokemonData?.pokemonName)
 			: 'Loading'}</title
 	>
 </svelte:head>
@@ -39,7 +39,7 @@
 		<div class="flex flex-col">
 			<div class="m-5 flex items-center justify-between">
 				<div class="text flex items-center gap-2">
-					<h1 class="text-xl font-bold">{capitalizeNames(pokemonData.forms[0].name)}</h1>
+					<h1 class="text-xl font-bold">{capitalizeNames(pokemonData.pokemonName)}</h1>
 					<h1 class="text-gray-400 dark:text-gray-200">#{id}</h1>
 				</div>
 				<a href="/">
@@ -51,15 +51,11 @@
 			<hr />
 			<div class="mx-10 mb-0 flex flex-col gap-5 md:mb-5">
 				<!-- <h1 on:click={handleBack} class="text-sky-500 hidden sm:block ml-auto" >X</h1> -->
-				{#if !pokemonData?.sprites.front_default}
+				{#if !pokemonData?.pokemonImg}
 					<Skeleton class="h-60 w-60 rounded" />
 				{:else}
 					<div class="flex w-full justify-center">
-						<img
-							class="w-40 md:w-55"
-							src={pokemonData?.sprites.front_default}
-							alt="Pokemon_Image"
-						/>
+						<img class="w-40 md:w-55" src={pokemonData?.pokemonImg} alt="Pokemon_Image" />
 					</div>
 				{/if}
 
@@ -79,9 +75,9 @@
 				<div class="abilities w-full text-start">
 					<h1 class="text-xl font-medium">Abilities</h1>
 					<ul>
-						{#each pokemonData?.abilities as ability (ability.ability.name)}
+						{#each pokemonData?.abilities as ability (ability.name)}
 							<li>
-								{capitalizeNames(ability?.ability.name)}
+								{capitalizeNames(ability.name)}
 							</li>
 						{/each}
 					</ul>

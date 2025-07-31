@@ -8,7 +8,6 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { cn } from '$lib/utils.js';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import Card from '$lib/components/Card.svelte';
 
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { buttonVariants } from '$lib/components/ui/button/index.js';
@@ -18,6 +17,8 @@
 	import { get } from 'svelte/store';
 	import { page } from '$app/stores';
 	import type { PokemonDetails, Types } from '$lib/types';
+	import { loading, loadMoreLoading } from '$lib/stores/store';
+	import CardsList from './CardsList.svelte';
 
 	let { pokemonList, types, handleRetry, handleLoadMore } = $props();
 
@@ -25,9 +26,10 @@
 	let value = $state<string[]>([]);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
+	console.log($loading, 'loading page ');
+	console.log($loadMoreLoading, 'load more ');
+
 	let filteredPokemonData = $state<PokemonDetails[]>([]);
-	let loading = $state(false);
-	let moreDataLoading = $state(false);
 	let query = $state('');
 
 	let selectedValues = $derived(types?.filter((f: Types) => value.includes(f.name)));
@@ -191,7 +193,7 @@
 		style="scrollbar-width: none;"
 		class="cards flex h-[90%] max-h-[80vh] flex-col gap-5 overflow-auto"
 	>
-		{#if loading}
+		{#if $loading}
 			<div class="flex flex-col gap-6">
 				<Skeleton class="h-25 rounded " />
 				<Skeleton class="h-25 rounded " />
@@ -204,23 +206,15 @@
 			<h1>Error In Get Pokemon Details</h1>
 			<Button onclick={handleRetry}>Retry</Button>
 		{:else}
-			{#each filteredPokemonData as pokemon}
-				<a href={`/pokemon/${extractId(pokemon.forms[0].url)}`}>
-					<Card
-						pokemonName={capitalizeNames(pokemon.forms[0].name)}
-						pokemonId={extractId(pokemon.forms[0].url)}
-						pokemonType={capitalizeNames(pokemon.types[0].type.name)}
-					/>
-				</a>
-			{/each}
-			{#if filteredPokemonData?.length == 0 && !loading}
-				<h1>Not Found Pokemon "{query}""</h1>
+			<CardsList {filteredPokemonData} {capitalizeNames} />
+			{#if filteredPokemonData?.length == 0 && !$loading}
+				<h1>Not Found Pokemon "{query ? query : value}"</h1>
 			{/if}
 			<div class="flex justify-center">
 				<Button
 					class="w-32 cursor-pointer"
 					onclick={() => (handleLoadMore(), handleClickLoadMore())}
-					disabled={moreDataLoading}>{moreDataLoading ? 'loading...' : 'More'}</Button
+					disabled={$loadMoreLoading}>{$loadMoreLoading ? 'loading...' : 'More'}</Button
 				>
 			</div>
 		{/if}

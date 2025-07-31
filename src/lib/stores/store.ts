@@ -6,6 +6,5 @@ export const query = writable('');
 export const typeValue = writable([]);
 export const selectedTypeValues = writable([]);
 export const nextUrl = writable('');
-
-// 		value = [];
-// 		selectedValues = [];
+export const loading = writable(false);
+export const loadMoreLoading = writable(false);
