@@ -81,15 +81,17 @@
 	const filterPokemonList = (search: string, selectedValues: Types[]) => {
 		filteredPokemonData = pokemonList;
 
+		console.log(filteredPokemonData, 'ssssss');
+
 		if (selectedValues?.length > 0) {
 			filteredPokemonData = filteredPokemonData.filter((pokemon: any) =>
-				selectedValues.some((e: Types) => pokemon.types[0].type.name == e.name)
+				selectedValues.some((e: Types) => pokemon.types == e.name)
 			);
 		}
 
 		if (search) {
 			filteredPokemonData = filteredPokemonData.filter((pokemon: any) =>
-				pokemon.forms[0].name.includes(search.toLowerCase())
+				pokemon.pokemonName.includes(search.toLowerCase())
 			);
 		}
 	};
