@@ -28,7 +28,7 @@ export const GET = async () => {
 				)
 			);
 
-		if (data?.length > 1) {
+		if (data?.length > 9) {
 			nextUrl.set(`https://pokeapi.co/api/v2/pokemon/?offset=${Number(+next + +next)}&limit=10`);
 			return json({
 				pokemonList: data
